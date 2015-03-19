@@ -8,4 +8,14 @@ I still have not tested the closest points code on Spark, as I'm trying to sort 
 
 I've added JTS to the maven dependencies. You'll have to follow the procedure in the hadoop/spark integration guide from the course documents to get maven to pull in all of the dependencies.
 
-Send me an email with your GitHub username and I'll add you as a collaborator on the repository.
+### How to run
+```bash
+java -jar geospatial.jar
+Usage: java -jar geospatial.jar <MASTER> <SPARK_HOME> <COMMAND> <ARG 1> [ARG 2] <OUTPUT>
+    where COMMAND is one of { closest-points, farthest-points ... }
+# For instance
+java -jar geospatial.jar spark://10.0.0.1:7077 /home/nathan/spark closest-points hdfs://10.0.0.1:54310/samples/points.txt hdfs://10.0.0.1:54310/samples/closest.txt
+```
+
+### Current Error
+The error that is currently preventing it from working is somewhat confusing because it occurs in Spark's code and the stack trace contains no code of our own, only java JRE, Scala, Akka, and Spark framework code. However it always fails on the reduce job in the closest points procedure. The error.txt file in the root of this repository contains the output that is given when the job is run. If anyone has any ideas, let me know.

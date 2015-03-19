@@ -3,9 +3,12 @@ package asu.cse512.geospatial;
 import org.apache.spark.api.java.*;
 import org.apache.spark.api.java.function.*;
 import scala.Tuple2;
+import java.io.Serializable;
 
-public class ClosestPoints {
+public class ClosestPoints implements Serializable {
 	
+	private static final long serialVersionUID = 1L;
+
 	private static final Function<PointPair, Boolean> DIFFERENT_FILTER = 
 			new Function<PointPair, Boolean>() {
 		private static final long serialVersionUID = 1L;

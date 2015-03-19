@@ -1,6 +1,10 @@
 package asu.cse512.geospatial;
 
-public class PointPair {
+import java.io.Serializable;
+
+public class PointPair implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	public PointPair(Point a, Point b) {
 		this.a = a;
