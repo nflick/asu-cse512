@@ -21,8 +21,8 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
 public class Q2_ConvexHull {
-	public static int MIN_X = -160;
-	public static int MAX_X = -120;
+	public static int MIN_X = -180;
+	public static int MAX_X = 180;
 
 	public static Geometry convertToMultiPoints(Geometry g)
 			throws ParseException {
@@ -63,7 +63,7 @@ public class Q2_ConvexHull {
 			double y = Double.parseDouble(array.get(1));
 			String s2 = String.format("POINT  (%f %f)", x, y);
 			Geometry g = new WKTReader().read(s2);
-			int idx = getPartitionIndex(x);
+			int idx = getPartitionRandom(x);
 			return new Tuple2<Integer, Geometry>(idx, g);
 		}
 	};
@@ -101,7 +101,12 @@ public class Q2_ConvexHull {
 		return p;
 	}
 
-	public static Geometry convexHull(JavaSparkContext ctx, String input) {
+	public static int getPartitionRandom(double x) {
+		return ((int) x) % 3;
+	}
+
+	public static Geometry convexHull(JavaSparkContext ctx, String input,
+			String output) {
 		JavaRDD<String> file = ctx.textFile(input);
 
 		JavaPairRDD<Integer, Geometry> tuples = file.mapToPair(POINT_EXTRACTOR);
@@ -113,6 +118,8 @@ public class Q2_ConvexHull {
 		Geometry result = g.convexHull();
 		System.out.println("convex hull result:");
 		System.out.println(result);
+		JavaRDD<Geometry> rdd = ctx.parallelize(Arrays.asList(result));
+		rdd.saveAsTextFile(output);
 		ctx.close();
 		return result;
 	}

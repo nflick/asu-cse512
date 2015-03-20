@@ -51,8 +51,7 @@ public class Common {
 			writeHDFSPointPair(closest, ctx, output);
 		} else if (command.equals("convex-hull")) {
 			String output = args[4];
-			Geometry g = Q2_ConvexHull.convexHull(ctx, input1);
-			writeHDFSGeometry(g, ctx, output);
+			Q2_ConvexHull.convexHull(ctx, input1,output);
 		}
 	}
 
@@ -69,10 +68,5 @@ public class Common {
 		rdd.saveAsTextFile(path);
 	}
 
-	public static void writeHDFSGeometry(Geometry g, JavaSparkContext ctx,
-			String path) {
-		JavaRDD<Geometry> rdd = ctx.parallelize(Arrays.asList(g));
-		rdd.saveAsTextFile(path);
-	}
 
 }
