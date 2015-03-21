@@ -51,7 +51,7 @@ public class Common {
 			writeHDFSPointPair(closest, ctx, output);
 		} else if (command.equals("convex-hull")) {
 			String output = args[4];
-			Q2_ConvexHull.convexHull(ctx, input1,output);
+			Q2_ConvexHull.convexHull(ctx, input1, output, true);
 		}
 	}
 
@@ -67,6 +67,5 @@ public class Common {
 				pair.getB()));
 		rdd.saveAsTextFile(path);
 	}
-
 
 }

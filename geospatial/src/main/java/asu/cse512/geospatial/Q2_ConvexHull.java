@@ -1,5 +1,6 @@
 package asu.cse512.geospatial;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import scala.Tuple2;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.MultiPoint;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
@@ -24,8 +26,7 @@ public class Q2_ConvexHull {
 	public static int MIN_X = -180;
 	public static int MAX_X = 180;
 
-	public static Geometry convertToMultiPoints(Geometry g)
-			throws ParseException {
+	public static Geometry convertToMultiPoints(Geometry g) {
 		String type = g.toString();
 		Geometry g2 = null;
 		if (type.startsWith("LINESTRING")) {
@@ -45,10 +46,18 @@ public class Q2_ConvexHull {
 				String[] strs = str.substring(1, str.length() - 1).split(",");
 				String str_point = String.format("POINT  (%s %s)", strs[0],
 						strs[1]);
+				Geometry tmp = null;
+				try {
+					tmp = new WKTReader().read(str_point);
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					System.err.println("parsing error");
+				}
 				if (g2 == null)
-					g2 = new WKTReader().read(str_point);
+					g2 = tmp;
 				else
-					g2 = g2.union(new WKTReader().read(str_point));
+					g2 = g2.union(tmp);
 			}
 		} else {
 			g2 = g;
@@ -59,11 +68,13 @@ public class Q2_ConvexHull {
 	private static final PairFunction<String, Integer, Geometry> POINT_EXTRACTOR = new PairFunction<String, Integer, Geometry>() {
 		public Tuple2<Integer, Geometry> call(String s) throws ParseException {
 			List<String> array = Arrays.asList(s.split(","));
+			if (array.size() < 2)
+				return null;
 			double x = Double.parseDouble(array.get(0));
 			double y = Double.parseDouble(array.get(1));
 			String s2 = String.format("POINT  (%f %f)", x, y);
 			Geometry g = new WKTReader().read(s2);
-			int idx = getPartitionRandom(x);
+			int idx = getPartitionRandom(g.hashCode());
 			return new Tuple2<Integer, Geometry>(idx, g);
 		}
 	};
@@ -81,11 +92,12 @@ public class Q2_ConvexHull {
 	private static final Function<Geometry, Geometry> FIRST_CONVEX_HULL = new Function<Geometry, Geometry>() {
 
 		public Geometry call(Geometry g1) throws Exception {
+			System.out.println("in first");
 			Geometry g2 = g1.convexHull();
+			System.out.println(g2);
 			g2 = convertToMultiPoints(g2);
-			// System.out.println("in first");
-			// System.out.println(g1);
-			// System.out.println(g2);
+			System.out.println(g1);
+			System.out.println(g2);
 			return g2;
 		}
 	};
@@ -101,12 +113,13 @@ public class Q2_ConvexHull {
 		return p;
 	}
 
-	public static int getPartitionRandom(double x) {
-		return ((int) x) % 3;
+	public static int getPartitionRandom(int x) {
+		return x % 30;
 	}
 
 	public static Geometry convexHull(JavaSparkContext ctx, String input,
-			String output) {
+			String output, boolean writeToFile) {
+
 		JavaRDD<String> file = ctx.textFile(input);
 
 		JavaPairRDD<Integer, Geometry> tuples = file.mapToPair(POINT_EXTRACTOR);
@@ -116,11 +129,54 @@ public class Q2_ConvexHull {
 		// values.mapp
 		Geometry g = first_convexhull.reduce(REDUCER);
 		Geometry result = g.convexHull();
-		System.out.println("convex hull result:");
-		System.out.println(result);
-		JavaRDD<Geometry> rdd = ctx.parallelize(Arrays.asList(result));
-		rdd.saveAsTextFile(output);
-		ctx.close();
+		if (writeToFile) {
+			writeHDFSPoints(result, ctx, output);
+		}
+		// ctx.close();
 		return result;
 	}
+
+	public static void writeHDFSPoints(Geometry g, JavaSparkContext ctx,
+			String output) {
+		System.out.println("convex hull result:");
+		// System.out.println(g);
+		MultiPoint points = (MultiPoint) convertToMultiPoints(g);
+		Coordinate[] cs = points.getCoordinates();
+		ArrayList<String> al = new ArrayList<String>();
+		for (Coordinate c : cs) {
+			String str = c.toString();
+			str = str.substring(1, str.length() - 1);
+			String[] strs = str.split(",");
+			String p = strs[0] + "," + strs[1];
+			al.add(p);
+			System.out.println(p);
+		}
+		JavaRDD<String> rdd = ctx.parallelize(al);
+		rdd.saveAsTextFile(output);
+	}
+
+	public static void main(String[] args) throws ParseException {
+		// String inputPath = getFileN(2);
+		String inputPath = "/mnt/hgfs/uBuntu_share_folder/ProjectTestCase/ConvexHullTestData.csv";
+		// String inputPath = "/home/steve/Documents/q2/input1.txt";
+		// String outputFolder = "/home/steve/Documents/q2/output1";
+		String outputFolder = "/home/steve/Documents/q2/output1";
+		JavaSparkContext context = getContext("ConvexHull");
+		convexHull(context, inputPath, outputFolder, true);
+
+	}
+
+	public static JavaSparkContext getContext(String appName) {
+		SparkConf conf = new SparkConf().setAppName(appName).setMaster("local");
+		conf.set("spark.hadoop.validateOutputSpecs", "false");
+		JavaSparkContext context = new JavaSparkContext(conf);
+		return context;
+	}
+
+	public static String getFileN(int N) {
+		return String
+				.format("/mnt/hgfs/uBuntu_share_folder/arealm/arealm_reduced_%d.csv",
+						N);
+	}
+
 }
