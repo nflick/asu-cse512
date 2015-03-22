@@ -52,6 +52,11 @@ public class Common {
 		} else if (command.equals("convex-hull")) {
 			String output = args[4];
 			Q2_ConvexHull.convexHull(ctx, input1, output, true);
+		}else if(command.equals("range")){
+			String input2=args[4];
+			String output=args[5];
+			SpatialRange.range(ctx,input1,input2,output);
+			
 		}
 	}
 

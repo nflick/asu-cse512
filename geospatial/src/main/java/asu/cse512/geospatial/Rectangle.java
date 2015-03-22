@@ -1,0 +1,30 @@
+package asu.cse512.geospatial;
+
+import java.io.Serializable;
+
+public class Rectangle implements Serializable{
+	int id;
+	double x1;
+	double y1;
+	double x2;
+	double y2;
+	
+	public Rectangle(int id,double x1,double y1,double x2,double y2){
+		this.id=id;
+		this.x1=Math.min(x1, x2);
+		this.y1=Math.max(y1, y2);
+		this.x2=Math.max(x1, x2);
+		this.y2=Math.min(y1, y2);
+	}
+	public boolean isIn(Rectangle small) {
+		if(small==null){
+			return false;
+		}
+		return x1 <= small.x1 && y1 >= small.y1 && x2 >= small.x2
+				&& y2 <= small.y2;
+	}
+	 @Override
+	 public String toString() {
+			return Integer.toString(id);
+		}
+}
