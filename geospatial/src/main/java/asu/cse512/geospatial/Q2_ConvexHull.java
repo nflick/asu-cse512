@@ -151,7 +151,7 @@ public class Q2_ConvexHull {
 			al.add(p);
 			System.out.println(p);
 		}
-		JavaRDD<String> rdd = ctx.parallelize(al);
+		JavaRDD<String> rdd = ctx.parallelize(al).coalesce(1);
 		rdd.saveAsTextFile(output);
 	}
 

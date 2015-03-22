@@ -61,6 +61,8 @@ public class Common {
 			JavaRDD<Point> points = readHDFSPointFile(ctx, input1);
 			PointPair farthest = FarthestPoints.farthestPoints(points);
 			writeHDFSPointPair(farthest, ctx, output);
+		} else {
+			System.out.println("Unknown command.");
 		}
 	}
 
@@ -73,7 +75,7 @@ public class Common {
 	public static void writeHDFSPointPair(PointPair pair, JavaSparkContext ctx,
 			String path) {
 		JavaRDD<Point> rdd = ctx.parallelize(Arrays.asList(pair.getA(),
-				pair.getB()));
+				pair.getB())).coalesce(1);
 		rdd.saveAsTextFile(path);
 	}
 
