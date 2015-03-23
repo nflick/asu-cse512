@@ -61,7 +61,7 @@ public class Common {
 			String output=args[5];
 			SpatialRange.range(ctx,input1,input2,output);
 
-		} else if(command.equals("jion-query")){
+		} else if(command.equals("join-query")){
 			String input2=args[4];
 			String output=args[5];
 			SpatialJoinQuery.joinQuery(ctx,input1,input2,output);
