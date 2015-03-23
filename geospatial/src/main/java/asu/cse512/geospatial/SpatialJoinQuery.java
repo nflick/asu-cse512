@@ -36,7 +36,7 @@ public class SpatialJoinQuery implements Serializable {
 		private static final long serialVersionUID = 1L;
 
 		public Rectangle call(String s){
-			List<String> array = Arrays.asList(s.split("\t"));
+			List<String> array = Arrays.asList(s.split(","));
 			double x1 = 0.0, x2 = 0.0, y1 = 0.0, y2 = 0.0;
 			int id = 0;
 			id = Integer.parseInt(array.get(0));
