@@ -72,7 +72,7 @@ public class SpatialJoinQuery implements Serializable {
 		public Boolean call(Tuple2<Rectangle, Rectangle> tuple){
 			Rectangle rectA = tuple._1();
 			Rectangle rectB = tuple._2();
-			return rectA.isIn(rectB);
+			return rectB.isIn(rectA);
 				
 		}
 	};
@@ -83,7 +83,7 @@ public class SpatialJoinQuery implements Serializable {
 		private static final long serialVersionUID = 1L;
 
 		public String call(String a,String b){
-			return (a+b);
+			return (a+", "+b);
 		}
 	};
 	
