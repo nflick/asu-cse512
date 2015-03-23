@@ -11,8 +11,11 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
 
 public class Common {
+	
 	private static final Function<String, Point> PARSE_POINT_MAP = new Function<String, Point>() {
 		private static final long serialVersionUID = 1L;
 
@@ -60,12 +63,17 @@ public class Common {
 			String input2=args[4];
 			String output=args[5];
 			SpatialRange.range(ctx,input1,input2,output);
-
 		} else if(command.equals("join-query")){
 			String input2=args[4];
 			String output=args[5];
 			SpatialJoinQuery.joinQuery(ctx,input1,input2,output);
-
+			
+		} else if(command.equals("union")){
+			String input=args[4];
+			String output=args[5];
+			GeoUnion.union(ctx,input,output);
+		}
+			
 		}else if (command.equals("farthest-points")) {
 			String output = args[4];
 			JavaRDD<Point> points = readHDFSPointFile(ctx, input1);
