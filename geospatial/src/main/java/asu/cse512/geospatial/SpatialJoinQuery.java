@@ -17,14 +17,8 @@ public class SpatialJoinQuery implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	public static void main(String[] args){
-		String input1 = "/home/chencheng/Documents/input1.txt";
-		String input2 = "/home/chencheng/Documents/input2.txt";
-		String outputFolder = "/home/chencheng/Documents/output1.txt";
-		SparkConf conf = new SparkConf().setAppName(
-				"org.sparkexample.closest_pair").setMaster("local");
-		conf.set("spark.hadoop.validateOutputSpecs", "false");
-		JavaSparkContext context = new JavaSparkContext(conf);
+	public static void joinQuery(JavaSparkContext context,String input1,String input2,String output){
+		
 		JavaRDD<String> file1 = context.textFile(input1);
 		JavaRDD<String> file2 = context.textFile(input2);
 		JavaRDD<Rectangle> rectA = file1.map(RECTANGLE_EXTRACTOR);
@@ -33,7 +27,7 @@ public class SpatialJoinQuery implements Serializable {
 		JavaPairRDD<Rectangle, Rectangle> tuples = cartestianTuples.filter(RANGE_FILTER);
 		JavaPairRDD<String, String> idTuples = JavaPairRDD.fromJavaRDD(tuples.map(RECTANGLE_ID_CONVERTER));
 		JavaPairRDD<String, String> result = idTuples.reduceByKey(AID_REDUCER);
-		result.saveAsTextFile(outputFolder);
+		result.saveAsTextFile(output);
 		context.close();
 	}
 	

@@ -61,7 +61,12 @@ public class Common {
 			String output=args[5];
 			SpatialRange.range(ctx,input1,input2,output);
 
-		} else if (command.equals("farthest-points")) {
+		} else if(command.equals("jion-query")){
+			String input2=args[4];
+			String output=args[5];
+			SpatialJoinQuery.joinQuery(ctx,input1,input2,output);
+
+		}else if (command.equals("farthest-points")) {
 			String output = args[4];
 			JavaRDD<Point> points = readHDFSPointFile(ctx, input1);
 			PointPair farthest = FarthestPoints.farthestPoints(points);
