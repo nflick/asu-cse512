@@ -1,6 +1,5 @@
 package asu.cse512.geospatial;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,56 +13,13 @@ import org.apache.spark.api.java.function.PairFunction;
 
 import scala.Tuple2;
 
-import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.MultiPoint;
-import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
 public class Q2_ConvexHull {
 	public static int MIN_X = -180;
 	public static int MAX_X = 180;
-
-	public static Geometry convertToMultiPoints(Geometry g) {
-		String type = g.toString();
-		Geometry g2 = null;
-		if (type.startsWith("LINESTRING")) {
-			LineString ls = (LineString) g;
-			for (int i = 0; i < ls.getNumPoints(); i++) {
-				if (g2 == null)
-					g2 = ls.getPointN(i);
-				else
-					g2 = g2.union(ls.getPointN(i));
-			}
-		} else if (type.startsWith("POLYGON")) {
-			Polygon p = (Polygon) g;
-			Coordinate[] array = p.getCoordinates();
-			for (Coordinate c : array) {
-
-				String str = c.toString();
-				String[] strs = str.substring(1, str.length() - 1).split(",");
-				String str_point = String.format("POINT  (%s %s)", strs[0],
-						strs[1]);
-				Geometry tmp = null;
-				try {
-					tmp = new WKTReader().read(str_point);
-				} catch (ParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					System.err.println("parsing error");
-				}
-				if (g2 == null)
-					g2 = tmp;
-				else
-					g2 = g2.union(tmp);
-			}
-		} else {
-			g2 = g;
-		}
-		return g2;
-	}
 
 	private static final PairFunction<String, Integer, Geometry> POINT_EXTRACTOR = new PairFunction<String, Integer, Geometry>() {
 		public Tuple2<Integer, Geometry> call(String s) throws ParseException {
@@ -92,12 +48,12 @@ public class Q2_ConvexHull {
 	private static final Function<Geometry, Geometry> FIRST_CONVEX_HULL = new Function<Geometry, Geometry>() {
 
 		public Geometry call(Geometry g1) throws Exception {
-			System.out.println("in first");
+			// System.out.println("in first");
 			Geometry g2 = g1.convexHull();
-			System.out.println(g2);
-			g2 = convertToMultiPoints(g2);
-			System.out.println(g1);
-			System.out.println(g2);
+			// System.out.println(g2);
+			g2 = Common.convertToMultiPoints(g2);
+			// System.out.println(g1);
+			// System.out.println(g2);
 			return g2;
 		}
 	};
@@ -129,30 +85,13 @@ public class Q2_ConvexHull {
 		// values.mapp
 		Geometry g = first_convexhull.reduce(REDUCER);
 		Geometry result = g.convexHull();
+		System.out.println("convex hull result:");
+		System.out.println(result);
 		if (writeToFile) {
-			writeHDFSPoints(result, ctx, output);
+			Common.writeHDFSPoints(result, ctx, output);
 		}
 		// ctx.close();
 		return result;
-	}
-
-	public static void writeHDFSPoints(Geometry g, JavaSparkContext ctx,
-			String output) {
-		System.out.println("convex hull result:");
-		// System.out.println(g);
-		MultiPoint points = (MultiPoint) convertToMultiPoints(g);
-		Coordinate[] cs = points.getCoordinates();
-		ArrayList<String> al = new ArrayList<String>();
-		for (Coordinate c : cs) {
-			String str = c.toString();
-			str = str.substring(1, str.length() - 1);
-			String[] strs = str.split(",");
-			String p = strs[0] + "," + strs[1];
-			al.add(p);
-			System.out.println(p);
-		}
-		JavaRDD<String> rdd = ctx.parallelize(al).coalesce(1);
-		rdd.saveAsTextFile(output);
 	}
 
 	public static void main(String[] args) throws ParseException {

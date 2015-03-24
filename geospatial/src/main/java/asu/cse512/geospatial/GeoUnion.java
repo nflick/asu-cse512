@@ -3,9 +3,7 @@ package asu.cse512.geospatial;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaRDDLike;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
@@ -35,12 +33,23 @@ public class GeoUnion {
 			return a.union(b);
 		}
 	};
-	
-	public static void union(JavaSparkContext context, String input, String output) {		
+
+	public static void union(JavaSparkContext context, String input,
+			String output) {
 		JavaRDD<String> file = context.textFile(input);
 		JavaRDD<Geometry> rectangles = file.map(POLYGON_EXTRACTOR);
 		Geometry result = rectangles.reduce(REDUCER);
-		((JavaRDDLike<String, JavaRDD<String>>) result).saveAsTextFile(output);
+		System.out.println("union result");
+		System.out.println(result);
+		Common.writeHDFSPoints(result, context, output);
 		context.close();
 	}
+
+	public static void main(String[] args) {
+		String base = "/home/steve/Documents/q1";
+		String input1 = base + "/input1.txt";
+		String outputFolder = base + "/output1";
+		union(Q2_ConvexHull.getContext("union"), input1, outputFolder);
+	}
+
 }

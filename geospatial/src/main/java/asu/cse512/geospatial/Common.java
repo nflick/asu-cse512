@@ -2,6 +2,7 @@ package asu.cse512.geospatial;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.log4j.Level;
@@ -10,7 +11,10 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.MultiPoint;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
@@ -94,5 +98,64 @@ public class Common {
 		JavaRDD<Point> rdd = ctx.parallelize(
 				Arrays.asList(pair.getA(), pair.getB())).coalesce(1);
 		rdd.saveAsTextFile(path);
+	}
+
+	public static void writeHDFSPoints(Geometry g, JavaSparkContext ctx,
+			String output) {
+		// System.out.println(g);
+		MultiPoint points = (MultiPoint) convertToMultiPoints(g);
+		Coordinate[] cs = points.getCoordinates();
+		ArrayList<String> al = new ArrayList<String>();
+		for (Coordinate c : cs) {
+			String[] strs = coordinateToStrings(c);
+			String p = strs[0] + "," + strs[1];
+			al.add(p);
+			// System.out.println(p);
+		}
+		JavaRDD<String> rdd = ctx.parallelize(al).coalesce(1);
+		rdd.saveAsTextFile(output);
+	}
+
+	public static String[] coordinateToStrings(Coordinate c) {
+		String str = c.toString();
+		String[] strs = str.substring(1, str.length() - 1).split(",");
+		return strs;
+	}
+
+	public static Geometry convertToMultiPoints(Geometry g) {
+		String type = g.toString();
+		Geometry g2 = null;
+		if (type.startsWith("LINESTRING")) {
+			LineString ls = (LineString) g;
+			for (int i = 0; i < ls.getNumPoints(); i++) {
+				if (g2 == null)
+					g2 = ls.getPointN(i);
+				else
+					g2 = g2.union(ls.getPointN(i));
+			}
+		} else if (type.startsWith("POLYGON")
+				|| type.startsWith("MULTIPOLYGON")) {
+			Coordinate[] array = g.getCoordinates();
+			for (Coordinate c : array) {
+				String[] strs = Common.coordinateToStrings(c);
+				String str_point = String.format("POINT  (%s %s)", strs[0],
+						strs[1]);
+				Geometry tmp = null;
+				try {
+					tmp = new WKTReader().read(str_point);
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					System.err.println("parsing error");
+				}
+				if (g2 == null)
+					g2 = tmp;
+				else
+					g2 = g2.union(tmp);
+			}
+		} else {
+			g2 = g;
+		}
+		return g2;
 	}
 }
