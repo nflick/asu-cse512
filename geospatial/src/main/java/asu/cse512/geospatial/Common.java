@@ -15,7 +15,7 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
 public class Common {
-	
+
 	private static final Function<String, Point> PARSE_POINT_MAP = new Function<String, Point>() {
 		private static final long serialVersionUID = 1L;
 
@@ -35,7 +35,7 @@ public class Common {
 					.println("\twhere COMMAND is one of { closest-points, farthest-points, convex-hull }");
 			return;
 		}
-		
+
 		Logger log = Logger.getLogger("org");
 		log.setLevel(Level.WARN);
 
@@ -49,7 +49,8 @@ public class Common {
 				.getLocation().getPath();
 		String decodedPath = URLDecoder.decode(path, "UTF-8");
 
-		JavaSparkContext ctx = new JavaSparkContext(master, command, sparkHome, decodedPath);
+		JavaSparkContext ctx = new JavaSparkContext(master, command, sparkHome,
+				decodedPath);
 
 		if (command.equals("closest-points")) {
 			String output = args[4];
@@ -59,22 +60,20 @@ public class Common {
 		} else if (command.equals("convex-hull")) {
 			String output = args[4];
 			Q2_ConvexHull.convexHull(ctx, input1, output, true);
-		} else if(command.equals("range")){
-			String input2=args[4];
-			String output=args[5];
-			SpatialRange.range(ctx,input1,input2,output);
-		} else if(command.equals("join-query")){
-			String input2=args[4];
-			String output=args[5];
-			SpatialJoinQuery.joinQuery(ctx,input1,input2,output);
-			
-		} else if(command.equals("union")){
-			String input=args[4];
-			String output=args[5];
-			GeoUnion.union(ctx,input,output);
-		}
-			
-		}else if (command.equals("farthest-points")) {
+		} else if (command.equals("range")) {
+			String input2 = args[4];
+			String output = args[5];
+			SpatialRange.range(ctx, input1, input2, output);
+		} else if (command.equals("join-query")) {
+			String input2 = args[4];
+			String output = args[5];
+			SpatialJoinQuery.joinQuery(ctx, input1, input2, output);
+
+		} else if (command.equals("union")) {
+			String output = args[4];
+			GeoUnion.union(ctx, input1, output);
+
+		} else if (command.equals("farthest-points")) {
 			String output = args[4];
 			JavaRDD<Point> points = readHDFSPointFile(ctx, input1);
 			PointPair farthest = FarthestPoints.farthestPoints(points);
@@ -92,8 +91,8 @@ public class Common {
 
 	public static void writeHDFSPointPair(PointPair pair, JavaSparkContext ctx,
 			String path) {
-		JavaRDD<Point> rdd = ctx.parallelize(Arrays.asList(pair.getA(),
-				pair.getB())).coalesce(1);
+		JavaRDD<Point> rdd = ctx.parallelize(
+				Arrays.asList(pair.getA(), pair.getB())).coalesce(1);
 		rdd.saveAsTextFile(path);
 	}
 }
