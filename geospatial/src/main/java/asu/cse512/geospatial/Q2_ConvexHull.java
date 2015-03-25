@@ -1,6 +1,7 @@
 package asu.cse512.geospatial;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.spark.SparkConf;
@@ -20,6 +21,7 @@ import com.vividsolutions.jts.io.WKTReader;
 public class Q2_ConvexHull {
 	public static int MIN_X = -180;
 	public static int MAX_X = 180;
+	public static int NUM_PARTITION = 700;
 
 	private static final PairFunction<String, Integer, Geometry> POINT_EXTRACTOR = new PairFunction<String, Integer, Geometry>() {
 		public Tuple2<Integer, Geometry> call(String s) throws ParseException {
@@ -59,7 +61,7 @@ public class Q2_ConvexHull {
 	};
 
 	public static int getPartitionIndex(double x) {
-		int n = 3;
+		int n = NUM_PARTITION;
 		double idx = (x - MIN_X) / ((MAX_X - MIN_X) / n * 1.0);
 		int p = (int) idx;
 		if (p < 0)
@@ -70,7 +72,7 @@ public class Q2_ConvexHull {
 	}
 
 	public static int getPartitionRandom(int x) {
-		return x % 30;
+		return x % NUM_PARTITION;
 	}
 
 	public static Geometry convexHull(JavaSparkContext ctx, String input,
@@ -95,13 +97,18 @@ public class Q2_ConvexHull {
 	}
 
 	public static void main(String[] args) throws ParseException {
-		// String inputPath = getFileN(2);
-		String inputPath = "/mnt/hgfs/uBuntu_share_folder/ProjectTestCase/ConvexHullTestData.csv";
+		String inputPath = getFileN(1);
+		// String inputPath =
+		// "/mnt/hgfs/uBuntu_share_folder/ProjectTestCase/ConvexHullTestData.csv";
 		// String inputPath = "/home/steve/Documents/q2/input1.txt";
 		// String outputFolder = "/home/steve/Documents/q2/output1";
 		String outputFolder = "/home/steve/Documents/q2/output1";
 		JavaSparkContext context = getContext("ConvexHull");
+		long lStartTime = new Date().getTime();
 		convexHull(context, inputPath, outputFolder, true);
+		long lEndTime = new Date().getTime();
+		long difference = lEndTime - lStartTime;
+		System.out.println("running time: " + difference);
 
 	}
 

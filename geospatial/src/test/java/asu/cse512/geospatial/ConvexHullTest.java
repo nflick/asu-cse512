@@ -33,7 +33,6 @@ public class ConvexHullTest {
 		if (myPoints.size() != expectedPoints.size())
 			fail("output points number:" + myPoints.size() + "\n"
 					+ "expected points number:" + expectedPoints.size());
-		System.out.println("size=" + myPoints.size());
 		for (Point p : myPoints) {
 			boolean found = false;
 			for (Point exp : expectedPoints) {
