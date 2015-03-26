@@ -1,24 +1,35 @@
 package asu.cse512.geospatial;
 
+import java.util.*;
+
 import org.apache.spark.api.java.*;
 import org.apache.spark.api.java.function.*;
+
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.MultiPoint;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
+
 import scala.Tuple2;
+
 import java.io.Serializable;
 
 public class FarthestPoints implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
-
-	private static final Function<PointPair, Boolean> DIFFERENT_FILTER = 
-			new Function<PointPair, Boolean>() {
+	
+	private static final Function<Coordinate, Point> COORDINATE_MAP =
+			new Function<Coordinate, Point>() {
 		private static final long serialVersionUID = 1L;
 		
-		public Boolean call(PointPair segment) {
-			return segment.hasDistinctEndpoints();
+		public Point call(Coordinate coord) {
+			return new Point(coord.x, coord.y);
 		}
 	};
 	
-	private static final Function<Tuple2<Point, Point>, PointPair> SEGMENTS_MAP = 
+	private static final Function<Tuple2<Point, Point>, PointPair> PAIR_MAP = 
 			new Function<Tuple2<Point, Point>, PointPair>() {
 		private static final long serialVersionUID = 1L;
 		
@@ -36,9 +47,13 @@ public class FarthestPoints implements Serializable {
 		}
 	};
 	
-	public static PointPair farthestPoints(JavaRDD<Point> points) {
-		JavaRDD<PointPair> segments = points.cartesian(points).map(SEGMENTS_MAP).filter(DIFFERENT_FILTER);
-		return segments.reduce(FARTHEST_REDUCER);
+	public static PointPair farthestPoints(JavaSparkContext context, String input) {
+		Geometry g = Q2_ConvexHull.convexHull(context, input, "", false);
+		MultiPoint multipoint = (MultiPoint)Common.convertToMultiPoints(g);
+		JavaRDD<Coordinate> coords = context.parallelize(Arrays.asList(multipoint.getCoordinates()));
+		JavaRDD<Point> points = coords.map(COORDINATE_MAP);
+		JavaRDD<PointPair> pairs = points.cartesian(points).map(PAIR_MAP);
+		return pairs.reduce(FARTHEST_REDUCER);
 	}
 	
 }

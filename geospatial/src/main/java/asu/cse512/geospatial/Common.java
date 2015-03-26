@@ -59,7 +59,7 @@ public class Common {
 		if (command.equals("closest-points")) {
 			String output = args[4];
 			JavaRDD<Point> points = readHDFSPointFile(ctx, input1);
-			PointPair closest = ClosestPoints.closestPoints(points);
+			PointPair closest = ClosestPoints.closestPoints(ctx, points);
 			writeHDFSPointPair(closest, ctx, output);
 		} else if (command.equals("convex-hull")) {
 			String output = args[4];
@@ -79,8 +79,7 @@ public class Common {
 
 		} else if (command.equals("farthest-points")) {
 			String output = args[4];
-			JavaRDD<Point> points = readHDFSPointFile(ctx, input1);
-			PointPair farthest = FarthestPoints.farthestPoints(points);
+			PointPair farthest = FarthestPoints.farthestPoints(ctx, input1);
 			writeHDFSPointPair(farthest, ctx, output);
 		} else {
 			System.out.println("Unknown command.");
