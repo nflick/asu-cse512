@@ -37,4 +37,8 @@ public class Rectangle implements Serializable{
 	public String toString() {
 			return Integer.toString(id);
 	}
+	
+	public int getId() {
+		return id;
+	}
 }
