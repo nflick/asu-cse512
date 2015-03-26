@@ -23,8 +23,10 @@ public class SpatialJoinQuery implements Serializable {
 		
 		JavaRDD<String> file1 = context.textFile(input1);
 		JavaRDD<String> file2 = context.textFile(input2);
+		// Map the input file to an RDD of Rectangle objects;
 		JavaRDD<Rectangle> rectA = file1.map(RECTANGLE_EXTRACTOR);
 		JavaRDD<Rectangle> rectB = file2.map(RECTANGLE_EXTRACTOR);
+		// Use broadcast variable to define the rectB;
 		final Broadcast<List<Rectangle>> bv = context.broadcast(rectB.collect());
 		JavaRDD<Tuple2<Integer, ArrayList<Integer>>> result = rectA
 				.map(new Function<Rectangle, Tuple2<Integer, ArrayList<Integer>>>() {
@@ -46,11 +48,13 @@ public class SpatialJoinQuery implements Serializable {
 					}
 
 				});
-
+		// Change the format of the result;
 		result.map(FORMATTER).coalesce(1).saveAsTextFile(output);
 		context.close();
 	}
-
+	
+	// Extract the rectangles into list as String;
+	// Store rectangle objects which has all the attributes needed;
 	public final static Function<String, Rectangle> RECTANGLE_EXTRACTOR = new Function<String, Rectangle>() {
 		private static final long serialVersionUID = 1L;
 
@@ -69,6 +73,7 @@ public class SpatialJoinQuery implements Serializable {
 		}
 	};
 
+	// Convert rectangle coordinates into ID;
 	public final static Function<Tuple2<Rectangle, Rectangle>, Tuple2<String, String>> RECTANGLE_ID_CONVERTER = new Function<Tuple2<Rectangle, Rectangle>, Tuple2<String, String>>() {
 		private static final long serialVersionUID = 1L;
 
@@ -80,6 +85,7 @@ public class SpatialJoinQuery implements Serializable {
 		}
 	};
 
+	// Filter to get the list of rectB's that rectA is in rectB; 
 	public final static Function<Tuple2<Rectangle, Rectangle>, Boolean> RANGE_FILTER = new Function<Tuple2<Rectangle, Rectangle>, Boolean>() {
 		private static final long serialVersionUID = 1L;
 
@@ -91,6 +97,7 @@ public class SpatialJoinQuery implements Serializable {
 		}
 	};
 
+	// Reduce by key, AID, to get a list of rectB in String;
 	public final static Function2<String, String, String> AID_REDUCER = new Function2<String, String, String>() {
 
 		private static final long serialVersionUID = 1L;
@@ -99,6 +106,8 @@ public class SpatialJoinQuery implements Serializable {
 			return (a + ", " + b);
 		}
 	};
+	
+	// Change the format of the result to the right one;
 	public final static Function<Tuple2<Integer, ArrayList<Integer>>, String> FORMATTER = new Function<Tuple2<Integer, ArrayList<Integer>>, String>() {
 
 		public String call(Tuple2<Integer, ArrayList<Integer>> tuple)
@@ -113,17 +122,18 @@ public class SpatialJoinQuery implements Serializable {
 		}
 		
 	};
-
-	public static void main(String[] args) {
-		String base = "/mnt/hgfs/uBuntu_share_folder/ProjectTestCase";
-		String input1 = base + "/q6input1.txt";
-		String input2 = base + "/q6input2.txt";
-		String outputFolder = "/home/steve/Documents/q6/output1";
-		SparkConf conf = new SparkConf().setAppName(
-				"org.sparkexample.closest_pair").setMaster("local");
-		conf.set("spark.hadoop.validateOutputSpecs", "false");
-		JavaSparkContext context = new JavaSparkContext(conf);
-		SpatialJoinQuery.joinQuery(context, input1, input2, outputFolder);
-	}
+	
+	//  Old method used to test locally;
+	//	public static void main(String[] args) {
+	//		String base = "/mnt/hgfs/uBuntu_share_folder/ProjectTestCase";
+	//		String input1 = base + "/q6input1.txt";
+	//		String input2 = base + "/q6input2.txt";
+	//		String outputFolder = "/home/steve/Documents/q6/output1";
+	//		SparkConf conf = new SparkConf().setAppName(
+	//				"org.sparkexample.closest_pair").setMaster("local");
+	//		conf.set("spark.hadoop.validateOutputSpecs", "false");
+	//		JavaSparkContext context = new JavaSparkContext(conf);
+	//		SpatialJoinQuery.joinQuery(context, input1, input2, outputFolder);
+	//	}
 
 }
