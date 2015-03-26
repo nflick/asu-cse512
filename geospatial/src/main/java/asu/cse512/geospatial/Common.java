@@ -20,6 +20,8 @@ import com.vividsolutions.jts.io.WKTReader;
 
 public class Common {
 
+	// This function is used to map an RDD of lines, as read from an HDFS
+	// file to an RDD of Point objects.
 	private static final Function<String, Point> PARSE_POINT_MAP = new Function<String, Point>() {
 		private static final long serialVersionUID = 1L;
 
@@ -40,6 +42,7 @@ public class Common {
 			return;
 		}
 
+		// Reduce log level from INFO to WARN
 		Logger log = Logger.getLogger("org");
 		log.setLevel(Level.WARN);
 
@@ -53,9 +56,12 @@ public class Common {
 				.getLocation().getPath();
 		String decodedPath = URLDecoder.decode(path, "UTF-8");
 
+		// Create Spark context. Note that this requires the location of the
+		// currently running code, which we determined above.
 		JavaSparkContext ctx = new JavaSparkContext(master, command, sparkHome,
 				decodedPath);
 
+		// Switch based on the command
 		if (command.equals("closest-points")) {
 			String output = args[4];
 			JavaRDD<Point> points = readHDFSPointFile(ctx, input1);
@@ -65,18 +71,20 @@ public class Common {
 			String output = args[4];
 			Q2_ConvexHull.convexHull(ctx, input1, output, true);
 		} else if (command.equals("range")) {
+			// Range query has two input files, so the argument handling
+			// is slightly different than the other cases.
 			String input2 = args[4];
 			String output = args[5];
 			SpatialRange.range(ctx, input1, input2, output);
 		} else if (command.equals("join-query")) {
+			// Join query also has two input files, so argument handling is
+			// again slightly different.
 			String input2 = args[4];
 			String output = args[5];
 			SpatialJoinQuery.joinQuery(ctx, input1, input2, output);
-
 		} else if (command.equals("union")) {
 			String output = args[4];
 			GeoUnion.union(ctx, input1, output);
-
 		} else if (command.equals("farthest-points")) {
 			String output = args[4];
 			PointPair farthest = FarthestPoints.farthestPoints(ctx, input1);
@@ -86,12 +94,15 @@ public class Common {
 		}
 	}
 
+	// Takes the location of a file in HDFS which contains points,
+	// and returns it in the form of an RDD.
 	public static JavaRDD<Point> readHDFSPointFile(JavaSparkContext ctx,
 			String path) {
 		JavaRDD<String> lines = ctx.textFile(path);
 		return lines.map(PARSE_POINT_MAP);
 	}
 
+	// Writes a point pair to HDFS.
 	public static void writeHDFSPointPair(PointPair pair, JavaSparkContext ctx,
 			String path) {
 		JavaRDD<Point> rdd = ctx.parallelize(
@@ -99,9 +110,9 @@ public class Common {
 		rdd.saveAsTextFile(path);
 	}
 
+	// Writes a JTS Geometry object to HDFS.
 	public static void writeHDFSPoints(Geometry g, JavaSparkContext ctx,
 			String output) {
-		// System.out.println(g);
 		MultiPoint points = (MultiPoint) convertToMultiPoints(g);
 		Coordinate[] cs = points.getCoordinates();
 		ArrayList<String> al = new ArrayList<String>();
@@ -109,18 +120,20 @@ public class Common {
 			String[] strs = coordinateToStrings(c);
 			String p = strs[0] + "," + strs[1];
 			al.add(p);
-			// System.out.println(p);
 		}
 		JavaRDD<String> rdd = ctx.parallelize(al).coalesce(1);
 		rdd.saveAsTextFile(output);
 	}
 
+	// Returns an array of Strings containing the x and y coordinates,
+	// respectively, of the given Coordinate.
 	public static String[] coordinateToStrings(Coordinate c) {
 		String str = c.toString();
 		String[] strs = str.substring(1, str.length() - 1).split(",");
 		return strs;
 	}
 
+	// Utility method to convert a Geometry object to a JTS Multipoint object.
 	public static Geometry convertToMultiPoints(Geometry g) {
 		String type = g.toString();
 		Geometry g2 = null;
