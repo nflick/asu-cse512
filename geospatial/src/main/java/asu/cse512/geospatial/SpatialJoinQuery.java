@@ -47,7 +47,7 @@ public class SpatialJoinQuery implements Serializable {
 
 				});
 
-		result.coalesce(1).saveAsTextFile(output);
+		result.map(FORMATTER).coalesce(1).saveAsTextFile(output);
 		context.close();
 	}
 
@@ -99,6 +99,20 @@ public class SpatialJoinQuery implements Serializable {
 			return (a + ", " + b);
 		}
 	};
+	public final static Function<Tuple2<Integer, ArrayList<Integer>>, String> FORMATTER = new Function<Tuple2<Integer, ArrayList<Integer>>, String>() {
+
+		public String call(Tuple2<Integer, ArrayList<Integer>> tuple)
+				throws Exception {
+			Integer key=tuple._1;
+			ArrayList<Integer> value=tuple._2;
+			StringBuffer result=new StringBuffer(""+key);
+			for (Integer i:value){
+				result.append(", "+i);
+			}
+			return result.toString();
+		}
+		
+	};
 
 	public static void main(String[] args) {
 		String base = "/mnt/hgfs/uBuntu_share_folder/ProjectTestCase";
@@ -109,7 +123,7 @@ public class SpatialJoinQuery implements Serializable {
 				"org.sparkexample.closest_pair").setMaster("local");
 		conf.set("spark.hadoop.validateOutputSpecs", "false");
 		JavaSparkContext context = new JavaSparkContext(conf);
-		SpatialJoinQuery2.joinQuery(context, input1, input2, outputFolder);
+		SpatialJoinQuery.joinQuery(context, input1, input2, outputFolder);
 	}
 
 }
