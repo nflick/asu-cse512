@@ -8,11 +8,9 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
-
-
+import org.apache.spark.broadcast.Broadcast;
 
 public class SpatialRange {
-private static Rectangle window;
 private static final Function<String,Rectangle> SMALL_RECT_EXTRACTOR =
 		new Function<String,Rectangle>(){
 
@@ -53,16 +51,6 @@ private static final Function<String,Rectangle> SMALL_RECT_EXTRACTOR =
 		return rec;
 	}		
  };
- private static final Function<Rectangle, Boolean> FILTER 
- 		= new Function<Rectangle, Boolean>(){
-
-			public Boolean call(Rectangle v1) throws Exception {
-				// TODO Auto-generated method stub
-				
-				return window.isIn(v1);
-			}
-	 
- };
  
  public static void range(JavaSparkContext context,String input1,String input2,String output){
 	 
@@ -71,10 +59,15 @@ private static final Function<String,Rectangle> SMALL_RECT_EXTRACTOR =
 	JavaRDD<String> file2=context.textFile(input2);
 	JavaRDD<Rectangle> small=file1.map(SMALL_RECT_EXTRACTOR);
 	JavaRDD<Rectangle> big=file2.map( WINDOW_EXTRACTOR);
-	window=big.first();
-	JavaRDD<Rectangle> result=small.filter(FILTER);
+	final Broadcast<Rectangle> window = context.broadcast(big.first());
 	
-	result.saveAsTextFile(output);
+	JavaRDD<Rectangle> result = small.filter(new Function<Rectangle, Boolean>(){
+		public Boolean call(Rectangle v1) throws Exception {
+			return window.value().isIn(v1);
+		}
+	});
+	
+	result.coalesce(1).saveAsTextFile(output);
 	context.close();
 
 	 
