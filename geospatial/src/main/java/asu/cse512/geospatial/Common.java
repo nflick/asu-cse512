@@ -38,7 +38,7 @@ public class Common {
 			System.out
 					.println("Usage: java -jar geospatial.jar <MASTER> <SPARK_HOME> <COMMAND> <ARG 1> [ARG 2] <OUTPUT>");
 			System.out
-					.println("\twhere COMMAND is one of { closest-points, farthest-points, convex-hull }");
+					.println("\twhere COMMAND is one of { closest-points, farthest-points, convex-hull, range, join-query, union }");
 			return;
 		}
 
