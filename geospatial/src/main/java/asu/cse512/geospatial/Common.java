@@ -117,8 +117,8 @@ public class Common {
 		Coordinate[] cs = points.getCoordinates();
 		ArrayList<String> al = new ArrayList<String>();
 		for (Coordinate c : cs) {
-			String[] strs = coordinateToStrings(c);
-			String p = strs[0] + "," + strs[1];
+			// String[] strs = coordinateToStrings(c);
+			String p = c.x + "," + c.y;
 			al.add(p);
 		}
 		JavaRDD<String> rdd = ctx.parallelize(al).coalesce(1);
@@ -127,17 +127,19 @@ public class Common {
 
 	// Returns an array of Strings containing the x and y coordinates,
 	// respectively, of the given Coordinate.
-	public static String[] coordinateToStrings(Coordinate c) {
-		String str = c.toString();
-		String[] strs = str.substring(1, str.length() - 1).split(",");
-		return strs;
-	}
+	// public static String[] coordinateToStrings(Coordinate c) {
+	// String str = c.toString();
+	// String[] strs = str.substring(1, str.length() - 1).split(",");
+	// return strs;
+	// }
 
 	// Utility method to convert a Geometry object to a JTS Multipoint object.
+	// if you directly getCoordinates from Geometry, there might be duplicate
+	// points, MultiPoints will remove duplicates
 	public static Geometry convertToMultiPoints(Geometry g) {
-		String type = g.toString();
+		String type = g.getGeometryType().toUpperCase();
 		Geometry g2 = null;
-		if (type.startsWith("LINESTRING")) {
+		if (type.equals("LINESTRING")) {
 			LineString ls = (LineString) g;
 			for (int i = 0; i < ls.getNumPoints(); i++) {
 				if (g2 == null)
@@ -145,13 +147,9 @@ public class Common {
 				else
 					g2 = g2.union(ls.getPointN(i));
 			}
-		} else if (type.startsWith("POLYGON")
-				|| type.startsWith("MULTIPOLYGON")) {
-			Coordinate[] array = g.getCoordinates();
-			for (Coordinate c : array) {
-				String[] strs = Common.coordinateToStrings(c);
-				String str_point = String.format("POINT  (%s %s)", strs[0],
-						strs[1]);
+		} else if (type.equals("POLYGON") || type.equals("MULTIPOLYGON")) {
+			for (Coordinate c : g.getCoordinates()) {
+				String str_point = String.format("POINT  (%f %f)", c.x, c.y);
 				Geometry tmp = null;
 				try {
 					tmp = new WKTReader().read(str_point);
