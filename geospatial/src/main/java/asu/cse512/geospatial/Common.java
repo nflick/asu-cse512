@@ -69,7 +69,7 @@ public class Common {
 			writeHDFSPointPair(closest, ctx, output);
 		} else if (command.equals("convex-hull")) {
 			String output = args[4];
-			Q2_ConvexHull.convexHull(ctx, input1, output, true);
+			ConvexHull.convexHull(ctx, input1, output, true);
 		} else if (command.equals("range")) {
 			// Range query has two input files, so the argument handling
 			// is slightly different than the other cases.

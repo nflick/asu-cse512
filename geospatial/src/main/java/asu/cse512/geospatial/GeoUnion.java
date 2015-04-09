@@ -15,7 +15,7 @@ import com.vividsolutions.jts.io.WKTReader;
 import com.vividsolutions.jts.operation.union.*;
 
 public class GeoUnion {
-	
+
 	// Parses a line from the inut file into a JTS Geometry object.
 	private static final Function<String, Geometry> POLYGON_EXTRACTOR = new Function<String, Geometry>() {
 		public Geometry call(String s) throws ParseException {
@@ -38,13 +38,13 @@ public class GeoUnion {
 			return a.union(b);
 		}
 	};
-	
-	// Allows us to perform a more efficient union by unioning an entire partition
+
+	// Allows us to perform a more efficient union by unioning an entire
+	// partition
 	// together at once. This uses the JTS CascadedPolygonUnion operation to do
 	// an efficient union on all of the Geometries in a single partition at the
 	// same time.
-	private static FlatMapFunction<Iterator<Geometry>, Geometry> PARTITION_MAP =
-			new FlatMapFunction<Iterator<Geometry>, Geometry>() {
+	private static FlatMapFunction<Iterator<Geometry>, Geometry> PARTITION_MAP = new FlatMapFunction<Iterator<Geometry>, Geometry>() {
 		private static final long serialVersionUID = 1L;
 
 		public Iterable<Geometry> call(Iterator<Geometry> iter) {
@@ -52,7 +52,7 @@ public class GeoUnion {
 			while (iter.hasNext()) {
 				geometries.add(iter.next());
 			}
-			
+
 			ArrayList<Geometry> result = new ArrayList<Geometry>();
 			result.add(CascadedPolygonUnion.union(geometries));
 			return result;
@@ -65,22 +65,26 @@ public class GeoUnion {
 		JavaRDD<String> file = context.textFile(input);
 		// Map the input file to an RDD of Geometry objects.
 		JavaRDD<Geometry> rectangles = file.map(POLYGON_EXTRACTOR);
-		// Union partitions. The entire set of Geometry objects composing each partition
-		// will be unioned into a single Geometry. The end result will be a new RDD with
-		// a single Geometry object for each partition of Geometries that existed in the
+		// Union partitions. The entire set of Geometry objects composing each
+		// partition
+		// will be unioned into a single Geometry. The end result will be a new
+		// RDD with
+		// a single Geometry object for each partition of Geometries that
+		// existed in the
 		// previous RDD>
-		JavaRDD<Geometry> partitionUnions = rectangles.mapPartitions(PARTITION_MAP);
+		JavaRDD<Geometry> partitionUnions = rectangles
+				.mapPartitions(PARTITION_MAP);
 		// Reduce these remaining geometries with JTS's union operation.
 		Geometry result = partitionUnions.reduce(REDUCER);
 		Common.writeHDFSPoints(result, context, output);
 		context.close();
 	}
 
-	public static void main(String[] args) {
-		String base = "/home/steve/Documents/q1";
-		String input1 = base + "/input1.txt";
-		String outputFolder = base + "/output1";
-		union(Q2_ConvexHull.getContext("union"), input1, outputFolder);
-	}
+	// public static void main(String[] args) {
+	// String base = "/home/steve/Documents/q1";
+	// String input1 = base + "/input1.txt";
+	// String outputFolder = base + "/output1";
+	// union(Q2_ConvexHull_old.getContext("union"), input1, outputFolder);
+	// }
 
 }

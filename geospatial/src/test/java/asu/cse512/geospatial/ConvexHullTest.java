@@ -7,24 +7,49 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.apache.spark.api.java.JavaSparkContext;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class ConvexHullTest {
+
+	public static JavaSparkContext ctx;
+
+	@BeforeClass
+	public static void init() {
+		ctx = ConvexHull_old.getContext("convex-hull");
+	}
 
 	@Test
 	public void test1() throws IOException {
 		String base = "/mnt/hgfs/uBuntu_share_folder/ProjectTestCase/";
 		String input = base + "ConvexHullTestData.csv";
+		String expectedOutput = base + "ConvexHullResult.csv";
+		testCommon(input, expectedOutput);
+
+	}
+
+	@Test
+	public void test2() throws IOException {
+		int N = 1000;
+		String base = "/mnt/hgfs/uBuntu_share_folder/";
+		String input = base + String.format("arealm/arealm_reduced_%d.csv", N);
+		String expectedOutput = base
+				+ String.format("junit/convex-hull-arealm_%d_result.txt", N);
+		testCommon(input, expectedOutput);
+
+	}
+
+	public void testCommon(String input, String expectedOutput)
+			throws IOException {
+
 		String outputFolder = "/home/steve/Documents/q2/output1/";
 		String outputFile = outputFolder + "part-00000";
-		String expectedOutput = base + "ConvexHullResult.csv";
 
-		Q2_ConvexHull.convexHull(Q2_ConvexHull.getContext("convex-hull"),
-				input, outputFolder, true);
+		ConvexHull.convexHull(ctx, input, outputFolder, true);
 		ArrayList<Point> myPoints = readPoints(outputFile);
 		ArrayList<Point> expectedPoints = readPoints(expectedOutput);
 		comparePoints(myPoints, expectedPoints);
-
 	}
 
 	public void comparePoints(ArrayList<Point> myPoints,

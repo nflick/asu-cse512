@@ -56,7 +56,7 @@ public class FarthestPoints implements Serializable {
 		// that form the convex hull. Therefore, we can perform the convex hull operation,
 		// which is O(nlogn) and then find the farthest pair in the resultant set,
 		// rather than running the naive O(n^2) farthest pair algorithm.
-		Geometry g = Q2_ConvexHull.convexHull(context, input, "", false);
+		Geometry g = ConvexHull.convexHull(context, input, "", false);
 		MultiPoint multipoint = (MultiPoint)Common.convertToMultiPoints(g);
 		JavaRDD<Coordinate> coords = context.parallelize(Arrays.asList(multipoint.getCoordinates()));
 		JavaRDD<Point> points = coords.map(COORDINATE_MAP);
