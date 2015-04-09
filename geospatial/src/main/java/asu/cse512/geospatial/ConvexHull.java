@@ -96,14 +96,11 @@ public class ConvexHull {
 
 		JavaRDD<String> file = ctx.textFile(input);
 
-		System.out.println("before point extractor");
 		JavaRDD<Geometry> points = file.map(POINT_EXTRACTOR).repartition(
 				NUM_PARTITION);
 
-		System.out.println("before convexhull ");
 		JavaRDD<Geometry> first_convexhull = points
 				.mapPartitions(PARTITION_MAP);
-		System.out.println("before reduce");
 		Geometry g = first_convexhull.reduce(REDUCER);
 		Geometry result = g.convexHull();
 		System.out.println("convex hull result:");
@@ -114,34 +111,5 @@ public class ConvexHull {
 		return result;
 	}
 
-	public static void main(String[] args) throws ParseException {
-		String inputPath = getFileN(1);
-		// String inputPath =
-		// "/mnt/hgfs/uBuntu_share_folder/ProjectTestCase/ConvexHullTestData.csv";
-		// String inputPath = "/home/steve/Documents/q2/input1.txt";
-		// String outputFolder = "/home/steve/Documents/q2/output1";
-		String outputFolder = "/home/steve/Documents/q2/output1";
-		JavaSparkContext context = getContext("ConvexHull");
-		long lStartTime = new Date().getTime();
-		ConvexHull.convexHull(context, inputPath, outputFolder, true);
-		long lEndTime = new Date().getTime();
-		long difference = lEndTime - lStartTime;
-		System.out.println("running time: " + difference);
-
-	}
-
-	// used for debug
-	public static JavaSparkContext getContext(String appName) {
-		SparkConf conf = new SparkConf().setAppName(appName).setMaster("local");
-		conf.set("spark.hadoop.validateOutputSpecs", "false");
-		JavaSparkContext context = new JavaSparkContext(conf);
-		return context;
-	}
-
-	public static String getFileN(int N) {
-		return String
-				.format("/mnt/hgfs/uBuntu_share_folder/arealm/arealm_reduced_%d.csv",
-						N);
-	}
 
 }

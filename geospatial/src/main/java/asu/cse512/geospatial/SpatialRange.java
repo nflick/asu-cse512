@@ -10,7 +10,7 @@ import org.apache.spark.broadcast.Broadcast;
 
 public class SpatialRange {
 	// extract the small rectangles into list as string
-	//define an rectangle object which has all the attributes needed
+	// define an rectangle object which has all the attributes needed
 	private static final Function<String, Rectangle> SMALL_RECT_EXTRACTOR = new Function<String, Rectangle>() {
 
 		public Rectangle call(String v1) throws Exception {
@@ -50,18 +50,18 @@ public class SpatialRange {
 			return rec;
 		}
 	};
-	
+
 	public static void range(JavaSparkContext context, String input1,
 			String input2, String output) {
 		JavaRDD<String> file1 = context.textFile(input1);
 		JavaRDD<String> file2 = context.textFile(input2);
-		//Map the input file to an RDD of Rectangle objects.
+		// Map the input file to an RDD of Rectangle objects.
 		JavaRDD<Rectangle> small = file1.map(SMALL_RECT_EXTRACTOR);
 		JavaRDD<Rectangle> big = file2.map(WINDOW_EXTRACTOR);
-		//using broadcast variable to define the window,
-		//make sure that every site will have the window variable
+		// using broadcast variable to define the window,
+		// make sure that every site will have the window variable
 		final Broadcast<Rectangle> window = context.broadcast(big.first());
-        //filter the small rectangles which is not in the windows
+		// filter the small rectangles which is not in the windows
 		JavaRDD<Rectangle> result = small
 				.filter(new Function<Rectangle, Boolean>() {
 					public Boolean call(Rectangle v1) throws Exception {
@@ -73,7 +73,7 @@ public class SpatialRange {
 		context.close();
 	}
 
-	//the main function is for test
+	// the main function is for test
 	//
 	// public static void main(String[] args){
 	// String input1="/mnt/hgfs/shared/RangeQueryTestData.csv";

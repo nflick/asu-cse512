@@ -1,6 +1,7 @@
 package asu.cse512.geospatial;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -76,15 +77,11 @@ public class GeoUnion {
 				.mapPartitions(PARTITION_MAP);
 		// Reduce these remaining geometries with JTS's union operation.
 		Geometry result = partitionUnions.reduce(REDUCER);
+		System.out.println(result);
 		Common.writeHDFSPoints(result, context, output);
 		context.close();
 	}
 
-	// public static void main(String[] args) {
-	// String base = "/home/steve/Documents/q1";
-	// String input1 = base + "/input1.txt";
-	// String outputFolder = base + "/output1";
-	// union(Q2_ConvexHull_old.getContext("union"), input1, outputFolder);
-	// }
+
 
 }
