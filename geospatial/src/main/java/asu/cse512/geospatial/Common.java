@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -61,6 +62,7 @@ public class Common {
 		JavaSparkContext ctx = new JavaSparkContext(master, command, sparkHome,
 				decodedPath);
 
+		long lStartTime = new Date().getTime();
 		// Switch based on the command
 		if (command.equals("closest-points")) {
 			String output = args[4];
@@ -92,6 +94,10 @@ public class Common {
 		} else {
 			System.out.println("Unknown command.");
 		}
+		long lEndTime = new Date().getTime();
+		long difference = lEndTime - lStartTime;
+		System.out.println("running time: " + difference);
+
 	}
 
 	// Takes the location of a file in HDFS which contains points,
