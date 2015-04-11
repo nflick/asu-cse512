@@ -22,7 +22,9 @@ public class Point implements Serializable {
 	}
 
 	public double distance(Point point) {
-		return Math.sqrt(Math.pow(x - point.x, 2) + Math.pow(y - point.y, 2));
+		double dx = x - point.x;
+		double dy = y - point.y;
+		return dx * dx + dy * dy;
 	}
 
 	@Override
