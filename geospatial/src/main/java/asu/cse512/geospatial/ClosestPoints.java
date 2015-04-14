@@ -39,35 +39,36 @@ public class ClosestPoints implements Serializable {
 
 	// THe primary function that performs the closest pair operation.
 	public static PointPair closestPoints(JavaSparkContext context,
-			JavaRDD<Point> points) {
+			List<Point> points) {
 		// Load points into a broadcast variable
-		final Broadcast<List<Point>> broadcastPoints = context.broadcast(points
-				.collect());
+		JavaRDD<Point> pointsRDD = context.parallelize(points);
+		final Broadcast<List<Point>> broadcastPoints = context
+				.broadcast(pointsRDD.collect());
 
 		// This class maps each point to a PointPair containing itself, and the
 		// closest other point to it.
 		// This function must be defined here, rather than as a static member of
 		// this class,
 		// so that it can capture the broadcast variable.
-		JavaRDD<PointPair> pairs = points.map(new Function<Point, PointPair>() {
-			private static final long serialVersionUID = 1L;
+		JavaRDD<PointPair> pairs = pointsRDD
+				.map(new Function<Point, PointPair>() {
+					private static final long serialVersionUID = 1L;
 
-			public PointPair call(Point point) {
-				PointPair closest = null;
-				for (Point p : broadcastPoints.value()) {
-					if (point.getX() > p.getX())
-						continue;
-					PointPair pair = new PointPair(point, p);
-					if (!point.equals(p)
-							&& (closest == null || pair.distance() < closest
-									.distance())) {
-						closest = pair;
+					public PointPair call(Point point) {
+						PointPair closest = null;
+						for (Point p : broadcastPoints.value()) {
+							// save time, only compare a pair once
+							if (point.getId() >= p.getId())
+								continue;
+							if (closest == null
+									|| point.distance(p) < closest.distance()) {
+								closest = new PointPair(point, p);
+							}
+						}
+
+						return closest;
 					}
-				}
-
-				return closest;
-			}
-		});
+				});
 
 		return pairs.reduce(CLOSEST_REDUCER);
 	}

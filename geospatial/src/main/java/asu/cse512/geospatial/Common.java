@@ -5,6 +5,7 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -67,7 +68,8 @@ public class Common {
 		if (command.equals("closest-points")) {
 			String output = args[4];
 			JavaRDD<Point> points = readHDFSPointFile(ctx, input1);
-			PointPair closest = ClosestPoints.closestPoints(ctx, points);
+			List<Point> list = points.collect();
+			PointPair closest = ClosestPoints.closestPoints(ctx, list);
 			writeHDFSPointPair(closest, ctx, output);
 		} else if (command.equals("convex-hull")) {
 			String output = args[4];

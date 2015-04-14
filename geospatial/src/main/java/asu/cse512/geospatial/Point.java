@@ -9,9 +9,11 @@ public class Point implements Serializable {
 	public Point(double x, double y) {
 		this.x = x;
 		this.y = y;
+		this.id = hashCode();
 	}
 
 	private final double x, y;
+	private final int id;
 
 	public double getX() {
 		return x;
@@ -27,19 +29,23 @@ public class Point implements Serializable {
 		return dx * dx + dy * dy;
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == this) {
-			return true;
-		}
-
-		if (!(obj instanceof Point)) {
-			return false;
-		}
-
-		Point point = (Point) obj;
-		return point.x == x && point.y == y;
+	public int getId() {
+		return id;
 	}
+
+	// @Override
+	// public boolean equals(Object obj) {
+	// if (obj == this) {
+	// return true;
+	// }
+	//
+	// if (!(obj instanceof Point)) {
+	// return false;
+	// }
+	//
+	// Point point = (Point) obj;
+	// return this.id == point.getId();
+	// }
 
 	@Override
 	public String toString() {
@@ -50,5 +56,11 @@ public class Point implements Serializable {
 		double epsilon = 0.000001;
 		return Math.abs((this.x - p.x)) < epsilon
 				&& Math.abs((this.y - p.y)) < epsilon;
+	}
+
+	public void print() {
+		System.out.println("\npoint hash:" + this.id);
+		System.out.println("x=" + this.x);
+		System.out.println("y=" + this.y);
 	}
 }
