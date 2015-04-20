@@ -32,6 +32,14 @@ public class Rectangle implements Serializable{
 		return x1 <= small.x1 && y1 >= small.y1 && x2 >= small.x2
 				&& y2 <= small.y2;
 	}
+	public boolean isPointIn(Point po) {
+
+		if(po==null){
+			return false;
+		}
+		return x1 <= po.getX() && y1 >= po.getY() && x2 >= po.getX()
+				&& y2 <= po.getY();
+	}
 
 	@Override
 	public String toString() {
