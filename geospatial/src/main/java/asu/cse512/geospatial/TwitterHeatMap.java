@@ -72,16 +72,16 @@ public class TwitterHeatMap implements Serializable {
 	};
 
 	// Old method used to test locally;
-	public static void main(String[] args) {
-		String base = "/mnt/hgfs/shared/";
-		String input1 = base + "polygon.csv";
-		String input2 = base + "point.csv";
-		String outputFolder = "/home/steve/Documents/q6/output1";
-		SparkConf conf = new SparkConf().setAppName(
-				"org.sparkexample.closest_pair").setMaster("local");
-		conf.set("spark.hadoop.validateOutputSpecs", "false");
-		JavaSparkContext context = new JavaSparkContext(conf);
-		TwitterHeatMap.heatMap(context, input1, input2, outputFolder);
-	}
+//	public static void main(String[] args) {
+//		String base = "/mnt/hgfs/shared/";
+//		String input1 = base + "polygon.csv";
+//		String input2 = base + "point.csv";
+//		String outputFolder = "/home/steve/Documents/q6/output1";
+//		SparkConf conf = new SparkConf().setAppName(
+//				"org.sparkexample.closest_pair").setMaster("local");
+//		conf.set("spark.hadoop.validateOutputSpecs", "false");
+//		JavaSparkContext context = new JavaSparkContext(conf);
+//		TwitterHeatMap.heatMap(context, input1, input2, outputFolder);
+//	}
 
 }

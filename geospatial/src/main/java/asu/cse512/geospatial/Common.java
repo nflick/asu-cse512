@@ -40,7 +40,7 @@ public class Common {
 			System.out
 					.println("Usage: java -jar geospatial.jar <MASTER> <SPARK_HOME> <COMMAND> <ARG 1> [ARG 2] <OUTPUT>");
 			System.out
-					.println("\twhere COMMAND is one of { closest-points, farthest-points, convex-hull, range, join-query, union }");
+					.println("\twhere COMMAND is one of { aggregation, closest-points, farthest-points, convex-hull, range, join-query, union }");
 			return;
 		}
 
@@ -93,7 +93,11 @@ public class Common {
 			String output = args[4];
 			PointPair farthest = FarthestPoints.farthestPoints(ctx, input1);
 			writeHDFSPointPair(farthest, ctx, output);
-		} else {
+		} else if(command.equals("aggregation")){
+			String input2=args[4];
+			String output=args[5];
+			TwitterHeatMap.heatMap(ctx,input1,input2,output);
+		}else {
 			System.out.println("Unknown command.");
 		}
 		long lEndTime = new Date().getTime();
