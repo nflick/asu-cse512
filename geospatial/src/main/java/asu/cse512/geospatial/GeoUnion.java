@@ -120,10 +120,10 @@ public class GeoUnion {
 		JavaPairRDD<Integer, Geometry> tuples2 = tuples.mapValues(
 				RECTANGLE_TO_JTS).reduceByKey(REDUCER);
 		JavaRDD<Geometry> polys = tuples2.values();
-		List<Geometry> list2 = polys.collect();
-		JavaRDD<String> result=polys.flatMap(GEO_FORMATTER);
-		
-		System.out.println("union result");
+		JavaRDD<String> result = polys.flatMap(GEO_FORMATTER);
+
+		// System.out.println("union result");
+		// List<Geometry> list2 = polys.collect();
 		// for (Geometry g : list2)
 		// System.out.println(g);
 		result.saveAsTextFile(output);
@@ -131,14 +131,14 @@ public class GeoUnion {
 	}
 
 	public static int find(int x) {
-		int x2=x;
+		int x2 = x;
 		while (unionSet[x] != x) {
 			x = unionSet[x];
 		}
-		while (unionSet[x2] != x2){ 
-			int next=unionSet[x2];
-			unionSet[x2]=x;
-			x2=next;
+		while (unionSet[x2] != x2) {
+			int next = unionSet[x2];
+			unionSet[x2] = x;
+			x2 = next;
 		}
 		return x;
 	}
