@@ -22,6 +22,7 @@ import com.vividsolutions.jts.io.WKTReader;
 
 public class GeoUnion {
 
+	// the parent of each rectangle
 	public static int[] unionSet;
 	public static HashMap<Integer, Integer> hashMap = new HashMap<Integer, Integer>();
 	public final static Function<String, Rectangle> RECTANGLE_EXTRACTOR = new Function<String, Rectangle>() {
@@ -99,6 +100,7 @@ public class GeoUnion {
 		}
 
 		for (int i = 0; i < len; i++) {
+			find(i);
 			hashMap.put(list.get(i).getId(), unionSet[i]);
 		}
 		final Broadcast<HashMap<Integer, Integer>> broadcastHashMap = context
